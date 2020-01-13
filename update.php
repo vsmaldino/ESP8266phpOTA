@@ -2,12 +2,14 @@
 
 // function definitions at the end
 
-$localpath = "./otabin/";
+$localbinpath = "./otabin/";
 $binext=".bin";
 
 /* scommentare
  * ********************
-checkHeaderMetas()
+ */
+checkHeaderMetas();
+/* Anche all'interno di loadHeaderMetas()
 */
 
 loadHeaderMetas();
@@ -35,7 +37,7 @@ logRequest($conn1);
 error_log ("Logged!", 0);
 
 $filename=searchFw($conn1);
-echo $filename;
+// error_log("ricevuto " . $filename);
 
 $conn1->close();
 
@@ -44,10 +46,11 @@ if (strcmp($filename, "no_no") == 0) {
 	error_log("No fw to send");
 }
 else {
-	$localbinary = $localpath.$filename.$binext;
+	$localbinary = $localbinpath.$filename.$binext;
+	error_log("localbinary " . $localbinary);
 	// security check in case of version/name/file mismatch
-	if (local_file(localbinary)) {
-	  if (strcmp($sketch_md5, md5_file(localbinary)) != 0) {
+	if (file_exists($localbinary)) {
+	  if (strcmp($sketch_md5, md5_file($localbinary)) != 0) {
 			error_log("Sending ".$filename." ");
 	  	sendfile($localbinary);
 	  }
@@ -156,7 +159,8 @@ function searchFw($conn) {
 	$sql = $sql . "OTA_RELEASES AS r, OTA_FORBOARD AS f ";
 	$sql = $sql . "WHERE ";
 	$sql = $sql . "r.SWID = f.SWID AND r.SWVERS AND f.SWVERS AND ";
-	$sql = $sql . "UCASE(f.STA_MAC) = UCASE(?) AND r.EXPIRES > NOW() AND r.ENABLED ";
+	$sql = $sql . "r.MACRESTRICTED AND r.ENABLED AND f.ENABLED AND ";
+	$sql = $sql . "UCASE(f.STA_MAC) = UCASE(?) AND r.EXPIRES > NOW() ";
 	$sql = $sql . "ORDER BY r.RELEASED DESC ";
 	$sql = $sql . "LIMIT 1  ";
 
@@ -198,6 +202,7 @@ function searchFw($conn) {
 	  $sql = $sql . "OTA_RELEASES ";
 	  $sql = $sql . "WHERE ";
 	  $sql = $sql . "SWID = ? AND EXPIRES > NOW() AND ENABLED ";
+	  $sql = $sql . "AND NOT(MACRESTRICTED) ";
 	  $sql = $sql . "ORDER BY RELEASED DESC ";
 	  $sql = $sql . "LIMIT 1 ";
 
@@ -277,27 +282,38 @@ function loadHeaderMetas () {
   
   $user_agent=substr($_SERVER["HTTP_USER_AGENT"],0,50); // alcuni user agent sono lunghissimi
   // echo $user_agent;
-  // $chip_id=$_SERVER["HTTP_X_ESP8266_CHIP_ID"];
-  $chip_id="1212122";
-  // echo "chip_id: " . $chip_id . "<br>";
-  // $sta_mac=$_SERVER["HTTP_X_ESP8266_STA_MAC"];
-  $sta_mac="84:F3:EB:B7:4F:BF";
-  // $ap_mac=$_SERVER["HTTP_X_ESP8266_AP_MAC"];
-  $ap_mac="84:F3:EB:B7:4F:BF";
-  // $free_space=$_SERVER["HTTP_X_ESP8266_FREE_SPACE"];
-  $free_space=1794043;
-  // $sketch_size=$_SERVER["HTTP_X_ESP8266_SKETCH_SIZE"];
-  $sketch_size=301231;
-  // $sketch_MD5=$_SERVER["HTTP_X_ESP8266_SKETCH_MD5"];
-  $sketch_md5="3016ef12ad231";
-  // $chip_size=$_SERVER["HTTP_X_ESP8266_CHIP_SIZE"];
-  $chip_size=4031231;
-  // $sdk_version=$_SERVER["HTTP_X_ESP8266_SDK_VERSION"];
-  $sdk_version="2.2.2-DEV(3A5B7)";
-  // $fw_mode=$_SERVER["HTTP_X_ESP8266_MODE"];
-  $fw_mode="sketch";
-  // $version=$_SERVER["HTTP_X_ESP8266_VERSION"];
-  $version="envm01_5.3.4";
+  error_log ("HTTP_USER_AGENT " . $user_agent);
+  $chip_id=$_SERVER["HTTP_X_ESP8266_CHIP_ID"];
+  // $chip_id="1212122";
+  error_log ("HTTP_X_ESP8266_CHIP_ID " . $chip_id);
+  $sta_mac=$_SERVER["HTTP_X_ESP8266_STA_MAC"];
+  // $sta_mac="84:F3:EB:B7:4F:BF";
+  error_log ("HTTP_X_ESP8266_STA_MAC " . $sta_mac);
+  $ap_mac=$_SERVER["HTTP_X_ESP8266_AP_MAC"];
+  // $ap_mac="84:F3:EB:B7:4F:BF";
+  error_log ("HTTP_X_ESP8266_AP_MAC " . $ap_mac);
+  $free_space=$_SERVER["HTTP_X_ESP8266_FREE_SPACE"];
+  // $free_space=1794043;
+  error_log ("HTTP_X_ESP8266_FREE_SPACE " . $free_space);
+  $sketch_size=$_SERVER["HTTP_X_ESP8266_SKETCH_SIZE"];
+  // $sketch_size=301231;
+  error_log ("HTTP_X_ESP8266_SKETCH_SIZE " . $sketch_size);
+  $sketch_md5=$_SERVER["HTTP_X_ESP8266_SKETCH_MD5"];
+  // $sketch_md5="3016ef12ad231";
+  error_log ("HTTP_X_ESP8266_SKETCH_MD5 " . $sketch_MD5);
+  $chip_size=$_SERVER["HTTP_X_ESP8266_CHIP_SIZE"];
+  // $chip_size=4031231;
+  error_log ("HTTP_X_ESP8266_CHIP_SIZE " . $chip_size);
+  $sdk_version=$_SERVER["HTTP_X_ESP8266_SDK_VERSION"];
+  // $sdk_version="2.2.2-DEV(3A5B7)";
+  error_log ("HTTP_X_ESP8266_SDK_VERSION " . $sdk_version);
+  $fw_mode=$_SERVER["HTTP_X_ESP8266_MODE"];
+  // $fw_mode="sketch";
+  error_log ("HTTP_X_ESP8266_MODE " . $fw_mode);
+  $version=$_SERVER["HTTP_X_ESP8266_VERSION"];
+  // $version="envm01_5.3.4";
+  error_log ("HTTP_X_ESP8266_VERSION " . $version);
+  
 } // loadHeaderMetas
 
 ?>
