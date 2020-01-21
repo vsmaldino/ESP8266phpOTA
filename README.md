@@ -3,6 +3,7 @@
 ## Very short
 
 Web server for ESP8266-based board OTA updates management.
+This function is very useful when the board is not easily accessible and when the updates need to be installed on multiple devices. The fuction needs to be implemented in the software and it must be uploaded to the board via USB only the first time, all the subsequent updates can be uploaded via OTA. Obviously the board requires a working wifi connection.
 
 ## Main Functions
 
